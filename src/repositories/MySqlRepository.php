@@ -6,12 +6,6 @@ namespace App\repositories;
 
 class MySqlRepository implements RepositoryInterface
 {
-    private const string HOSTNAME = '8092a0bbc26b';
-    private const string USERNAME = 'root';
-    private const string PASSWORD = 'root';
-    private const string DATABASE = 'test';
-    private const int PORT = 3306;
-
     public function read(): void
     {
 
