@@ -63,7 +63,7 @@ class MySqlRepository implements RepositoryInterface
 
         $sql = 'INSERT users(id, name, surname, email) VALUES(?, ?, ?, ?)';
         $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('isss',$id, $name, $surname, $email);
+        $stmt->bind_param('isss', $id, $name, $surname, $email);
         $stmt->execute();
     }
 
