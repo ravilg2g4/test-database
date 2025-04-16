@@ -41,6 +41,7 @@ EOT;
                         break;
                     case '2':
                         $repository->write();
+                        $repository->answerWrite();
                         $goodChoice = true;
                         break;
                     case '3':

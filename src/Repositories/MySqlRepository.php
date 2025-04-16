@@ -31,7 +31,6 @@ class MySqlRepository implements RepositoryInterface
     }
     public function read(): void
     {
-
         $mysql = $this->connectMySql();
 
         $sql = 'SELECT * FROM users;';
@@ -39,34 +38,67 @@ class MySqlRepository implements RepositoryInterface
 
         while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
             print_r($row);
-
-
         }
     }
-
-    public function write(): void
+    private function getJsonFromPost(): array
+    {
+        $json = file_get_contents('php://input');
+        $newUser = json_decode($json);
+        return $newUser;
+    }
+    private function getIdNewUser(): int
     {
         $mysql = $this->connectMySql();
-
         $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
         $result = $mysql->query($sql);
         $result = $result->fetch_array(MYSQLI_ASSOC);
         $id = $result['id'] + 1;
+        return $id;
+    }
+    private function prepareNewUser(): array
+    {
+        $newUser = $this->getJsonFromPost();
+        $newUser['name'] = trim($newUser['name']);
+        $newUser['surname'] = trim($newUser['surname']);
+        $newUser['email'] = trim($newUser['email']);
 
-        $name = readline('Имя нового пользователя: ');
-        $surname = readline('Фамилия нового пользователя: ');
-        $email = readline('Почта нового пользователя: ');
+        $idNewUser = $this->getIdNewUser();
+        $newUser = array_merge(['id' => $idNewUser], $newUser);
 
-        $name = trim($name);
-        $surname = trim($surname);
-        $email = trim($email);
+        return $newUser;
+    }
+    public function write(): void
+    {
+        $mysql = $this->connectMySql();
+        $newUser = $this->prepareNewUser();
 
         $sql = 'INSERT users(id, name, surname, email) VALUES(?, ?, ?, ?)';
         $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('isss', $id, $name, $surname, $email);
+        $stmt->bind_param('isss', $newUser['id'], $newUser['name'], $newUser['surname'], $newUser['email']);
         $stmt->execute();
     }
-
+    private function checkWrite(): bool
+    {
+        $mysql = $this->connectMySql();
+        $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
+        $result = $mysql->query($sql);
+        $lastUser = $result->fetch_array(MYSQLI_ASSOC);
+        $newUser = $this->getJsonFromPost();
+        if ($newUser === $lastUser) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    public function answerWrite(): void
+    {
+        $checkWrite = $this->checkWrite();
+        if ($checkWrite === true) {
+            // тут отвечаем в формате json о том, что запись была успешна
+        } else {
+            // тут отвечаем в формате json о том, что запись не прошла
+        }
+    }
     public function deleteId(): void
     {
         $mysql = $this->connectMySql();
