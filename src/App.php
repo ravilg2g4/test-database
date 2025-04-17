@@ -29,22 +29,18 @@ EOT;
 
             $goodChoice = false;
             while ($goodChoice === false) {
-                echo self::HELLO_TEXT;
 
-                $action = readline('Ваш выбор: ');
-                $action = trim($action);
-
-                switch ($action) {
-                    case '1':
+                switch ($_SERVER['REQUEST_METHOD']) {
+                    case 'GET':
                         $repository->read();
                         $goodChoice = true;
                         break;
-                    case '2':
+                    case 'POST':
                         $repository->write();
                         $repository->answerWrite();
                         $goodChoice = true;
                         break;
-                    case '3':
+                    case 'DELETE':
                         $choiceDelete = readline('Вы знаете id или по почту? (id/email): ');
                         $choiceDelete = trim($choiceDelete);
 

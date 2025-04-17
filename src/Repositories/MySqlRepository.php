@@ -43,7 +43,7 @@ class MySqlRepository implements RepositoryInterface
     private function getJsonFromPost(): array
     {
         $json = file_get_contents('php://input');
-        $newUser = json_decode($json);
+        $newUser = json_decode($json, true);
         return $newUser;
     }
     private function getIdNewUser(): int
@@ -84,6 +84,8 @@ class MySqlRepository implements RepositoryInterface
         $result = $mysql->query($sql);
         $lastUser = $result->fetch_array(MYSQLI_ASSOC);
         $newUser = $this->getJsonFromPost();
+        array_shift($lastUser);
+
         if ($newUser === $lastUser) {
             return true;
         } else {
@@ -94,9 +96,13 @@ class MySqlRepository implements RepositoryInterface
     {
         $checkWrite = $this->checkWrite();
         if ($checkWrite === true) {
-            // тут отвечаем в формате json о том, что запись была успешна
+            $answer = ['answer' => 'Пользователь добавлен в базу данных'];
+            $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
+            print_r($answerJson);
         } else {
-            // тут отвечаем в формате json о том, что запись не прошла
+            $answer = ['answer' => 'Пользователь не добавлен в базу данных'];
+            $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
+            print_r($answerJson);
         }
     }
     public function deleteId(): void
