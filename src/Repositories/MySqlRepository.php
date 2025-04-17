@@ -97,28 +97,46 @@ class MySqlRepository implements RepositoryInterface
         $checkWrite = $this->checkWrite();
         if ($checkWrite === true) {
             $answer = ['answer' => 'Пользователь добавлен в базу данных'];
-            $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
-            print_r($answerJson);
         } else {
             $answer = ['answer' => 'Пользователь не добавлен в базу данных'];
-            $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
-            print_r($answerJson);
         }
+        $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
+        print_r($answerJson);
     }
-    public function deleteId(): void
+    public function deleteById(): void
     {
         $mysql = $this->connectMySql();
-
-        $id = readline('Введите id пользователя, которого хотите удалить: ');
-        $id = trim($id);
-
+        $id = $_GET['id'];
         $sql = 'DELETE FROM users WHERE id = ?';
         $stmt = $mysql->prepare($sql);
         $stmt->bind_param('i', $id);
         $stmt->execute();
     }
-
-    public function deleteEmail(): void
+    private function checkDeleteById(): bool
+    {
+        $mysql = $this->connectMySql();
+        $id = $_GET['id'];
+        $sql = 'SELECT * FROM users WHERE id = ?';
+        $stmt = $mysql->prepare($sql);
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $checkId = $result->fetch_array(MYSQLI_ASSOC);
+        $check = empty($checkId);
+        return $check;
+    }
+    public function answerDeleteById(): void
+    {
+        $checkDelete = $this->checkDeleteById();
+        if ($checkDelete === true) {
+            $answer = ['answer' => 'Пользователь успешно удален из базы данных'];
+        } else {
+            $answer = ['answer' => 'Пользователь не был удален из базы данных'];
+        }
+        $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
+        print_r($answerJson);
+    }
+    public function deleteByEmail(): void
     {
         $mysql = $this->connectMySql();
 

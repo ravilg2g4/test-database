@@ -47,7 +47,7 @@ class JsonRepository implements RepositoryInterface
         file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
     }
 
-    public function deleteId(): void
+    public function deleteById(): void
     {
         $dataBase = $this->getJsonArray();
 
@@ -59,7 +59,7 @@ class JsonRepository implements RepositoryInterface
         file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
     }
 
-    public function deleteEmail(): void
+    public function deleteByEmail(): void
     {
         $dataBase = $this->getJsonArray();
 

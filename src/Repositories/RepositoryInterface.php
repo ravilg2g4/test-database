@@ -8,6 +8,6 @@ interface RepositoryInterface
 {
     public function read(): void;
     public function write(): void;
-    public function deleteId(): void;
-    public function deleteEmail(): void;
+    public function deleteById(): void;
+    public function deleteByEmail(): void;
 }

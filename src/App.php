@@ -41,8 +41,8 @@ EOT;
                         $goodChoice = true;
                         break;
                     case 'DELETE':
-                        $choiceDelete = readline('Вы знаете id или по почту? (id/email): ');
-                        $choiceDelete = trim($choiceDelete);
+                        $repository->deleteById();
+                        $repository->answerDeleteById();
 
                         if ($choiceDelete === 'id') {
                             $repository->deleteId();
