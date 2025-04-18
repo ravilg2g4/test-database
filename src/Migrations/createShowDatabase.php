@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Migrations;
 
-$mysql = new \mysqli(hostname: "8092a0bbc26b", username: "root",password: "root",port: 3306);
+$mysql = new \mysqli(hostname: "8092a0bbc26b", username: "root", password: "root", port: 3306);
 
 $sql = 'CREATE DATABASE test;';
 $mysql->query($sql);
@@ -21,6 +21,5 @@ $email = 'user@gmail.com';
 
 $sql = 'INSERT users(id, name, surname, email) VALUES(?, ?, ?, ?)';
 $stmt = $mysql->prepare($sql);
-$stmt->bind_param('isss',$id, $name, $surname, $email);
+$stmt->bind_param('isss', $id, $name, $surname, $email);
 $stmt->execute();
-

@@ -30,8 +30,13 @@ down: # роняем контейнеры
 
 
 .PHONY: php-bash
-php-bash: # прыгаем в контейнер с php
+php-bash: # прыгаем в контейнер с PHP
 	$(DOCKER_COMPOSE) exec php bash
+
+
+.PHONY: php-mysql
+mysql-bash: # прыгаем в контейнер с MySQL
+	$(DOCKER_COMPOSE) exec mysql bash
 
 
 .PHONY: composer-install

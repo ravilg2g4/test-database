@@ -7,7 +7,6 @@ namespace App\Repositories;
 interface RepositoryInterface
 {
     public function read(): void;
-    public function write(): void;
-    public function deleteId(): void;
-    public function deleteEmail(): void;
+    public function create(): void;
+    public function delete(): void;
 }
