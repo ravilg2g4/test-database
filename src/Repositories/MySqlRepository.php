@@ -36,7 +36,7 @@ class MySqlRepository implements RepositoryInterface
         $sql = 'SELECT * FROM users;';
         $result = $mysql->query($sql);
         $result = $result->fetch_all(MYSQLI_ASSOC);
-        $answer = json_encode($result,  JSON_UNESCAPED_UNICODE);
+        $answer = json_encode($result, JSON_UNESCAPED_UNICODE);
         print_r($answer);
     }
     private function getJsonFromPost(): array
@@ -99,7 +99,7 @@ class MySqlRepository implements RepositoryInterface
         } else {
             $answer = ['answer' => 'Пользователь не добавлен в базу данных'];
         }
-        $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
+        $answerJson = json_encode($answer, JSON_UNESCAPED_UNICODE);
         print_r($answerJson);
     }
     public function choiceDelete(): string
@@ -163,7 +163,7 @@ class MySqlRepository implements RepositoryInterface
 
         $stmt = $mysql->prepare($sql);
         $typeValueDelete = $this->getTypeValueDelete();
-        $stmt->bind_param($typeValueDelete,$valueDelete);
+        $stmt->bind_param($typeValueDelete, $valueDelete);
         $stmt->execute();
     }
     private function checkDelete(): bool
@@ -174,7 +174,7 @@ class MySqlRepository implements RepositoryInterface
 
         $stmt = $mysql->prepare($sql);
         $typeValueDelete = $this->getTypeValueDelete();
-        $stmt->bind_param($typeValueDelete,$valueDelete);
+        $stmt->bind_param($typeValueDelete, $valueDelete);
         $stmt->execute();
 
         $result = $stmt->get_result();
@@ -190,7 +190,7 @@ class MySqlRepository implements RepositoryInterface
         } else {
             $answer = ['answer' => 'Пользователь не был удален из базы данных'];
         }
-        $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
+        $answerJson = json_encode($answer, JSON_UNESCAPED_UNICODE);
         print_r($answerJson);
     }
 }
