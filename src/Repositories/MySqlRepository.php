@@ -103,31 +103,89 @@ class MySqlRepository implements RepositoryInterface
         $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
         print_r($answerJson);
     }
-    public function deleteById(): void
+    public function choiceDelete(): string
+    {
+        if (array_key_exists('id', $_GET)) {
+            $choiceDelete = 'id';
+        } elseif (array_key_exists('email', $_GET)) {
+            $choiceDelete = 'email';
+        } else {
+            $answer = ['answerError' => 'Не указан параметр для удаления пользователя'];
+            print_r($answer);
+            exit();
+        }
+        return $choiceDelete;
+    }
+    private function getTypeValueDelete(): string
+    {
+        $choiceDelete = $this->choiceDelete();
+        if ($choiceDelete === 'id') {
+            $typeValueDelete = 'i';
+        } elseif ($choiceDelete === 'email') {
+            $typeValueDelete = 's';
+        }
+        return $typeValueDelete;
+    }
+    private function getValueDelete(): int|string
+    {
+        $choiceDelete = $this->choiceDelete();
+        if ($choiceDelete === 'id') {
+            $valueDelete = (int)$_GET['id'];
+        } elseif ($choiceDelete === 'email') {
+            $valueDelete = $_GET['email'];
+        }
+        return $valueDelete;
+    }
+    private function createSqlRequestDelete(): string
+    {
+        $choiceDelete = $this->choiceDelete();
+        if ($choiceDelete === 'id') {
+            $sql = 'DELETE FROM users WHERE id = ?';
+        } elseif ($choiceDelete === 'email') {
+            $sql = 'DELETE FROM users WHERE email = ?';
+        }
+        return $sql;
+    }
+    private function createSqlRequestCheck(): string
+    {
+        $choiceDelete = $this->choiceDelete();
+        if ($choiceDelete === 'id') {
+            $sql = 'SELECT * FROM users WHERE id = ?';
+        } elseif ($choiceDelete === 'email') {
+            $sql = 'SELECT * FROM users WHERE email = ?';
+        }
+        return $sql;
+    }
+    public function delete(): void
     {
         $mysql = $this->connectMySql();
-        $id = $_GET['id'];
-        $sql = 'DELETE FROM users WHERE id = ?';
+        $valueDelete = $this->getValueDelete();
+        $sql = $this->createSqlRequestDelete();
+
         $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('i', $id);
+        $typeValueDelete = $this->getTypeValueDelete();
+        $stmt->bind_param($typeValueDelete,$valueDelete);
         $stmt->execute();
     }
-    private function checkDeleteById(): bool
+    private function checkDelete(): bool
     {
         $mysql = $this->connectMySql();
-        $id = $_GET['id'];
-        $sql = 'SELECT * FROM users WHERE id = ?';
+        $valueDelete = $this->getValueDelete();
+        $sql = $this->createSqlRequestCheck();
+
         $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('i', $id);
+        $typeValueDelete = $this->getTypeValueDelete();
+        $stmt->bind_param($typeValueDelete,$valueDelete);
         $stmt->execute();
+
         $result = $stmt->get_result();
         $checkId = $result->fetch_array(MYSQLI_ASSOC);
         $check = empty($checkId);
         return $check;
     }
-    public function answerDeleteById(): void
+    public function answerDelete(): void
     {
-        $checkDelete = $this->checkDeleteById();
+        $checkDelete = $this->checkDelete();
         if ($checkDelete === true) {
             $answer = ['answer' => 'Пользователь успешно удален из базы данных'];
         } else {
@@ -135,17 +193,5 @@ class MySqlRepository implements RepositoryInterface
         }
         $answerJson = json_encode($answer,  JSON_UNESCAPED_UNICODE);
         print_r($answerJson);
-    }
-    public function deleteByEmail(): void
-    {
-        $mysql = $this->connectMySql();
-
-        $email = readline('Введите почту пользователя: ');
-        $email = trim($email);
-
-        $sql = 'DELETE FROM users WHERE email = ?';
-        $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
     }
 }

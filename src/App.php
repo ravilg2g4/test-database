@@ -41,14 +41,8 @@ EOT;
                         $goodChoice = true;
                         break;
                     case 'DELETE':
-                        $repository->deleteById();
-                        $repository->answerDeleteById();
-
-                        if ($choiceDelete === 'id') {
-                            $repository->deleteId();
-                        } elseif ($choiceDelete === 'email') {
-                            $repository->deleteEmail();
-                        }
+                        $repository->delete();
+                        $repository->answerDelete();
                         $goodChoice = true;
                         break;
                     default:
