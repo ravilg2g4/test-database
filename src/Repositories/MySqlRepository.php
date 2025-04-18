@@ -35,10 +35,9 @@ class MySqlRepository implements RepositoryInterface
 
         $sql = 'SELECT * FROM users;';
         $result = $mysql->query($sql);
-
-        while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
-            print_r($row);
-        }
+        $result = $result->fetch_all(MYSQLI_ASSOC);
+        $answer = json_encode($result,  JSON_UNESCAPED_UNICODE);
+        print_r($answer);
     }
     private function getJsonFromPost(): array
     {
@@ -67,7 +66,7 @@ class MySqlRepository implements RepositoryInterface
 
         return $newUser;
     }
-    public function write(): void
+    public function create(): void
     {
         $mysql = $this->connectMySql();
         $newUser = $this->prepareNewUser();
@@ -77,7 +76,7 @@ class MySqlRepository implements RepositoryInterface
         $stmt->bind_param('isss', $newUser['id'], $newUser['name'], $newUser['surname'], $newUser['email']);
         $stmt->execute();
     }
-    private function checkWrite(): bool
+    private function checkCreate(): bool
     {
         $mysql = $this->connectMySql();
         $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
@@ -92,9 +91,9 @@ class MySqlRepository implements RepositoryInterface
             return false;
         }
     }
-    public function answerWrite(): void
+    public function answerCreate(): void
     {
-        $checkWrite = $this->checkWrite();
+        $checkWrite = $this->checkCreate();
         if ($checkWrite === true) {
             $answer = ['answer' => 'Пользователь добавлен в базу данных'];
         } else {

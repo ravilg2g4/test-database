@@ -25,7 +25,7 @@ class JsonRepository implements RepositoryInterface
         print_r($dataBase);
     }
 
-    public function write(): void
+    public function create(): void
     {
         $dataBase = $this->getJsonArray();
 
@@ -47,7 +47,7 @@ class JsonRepository implements RepositoryInterface
         file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
     }
 
-    public function deleteById(): void
+    public function delete(): void
     {
         $dataBase = $this->getJsonArray();
 
