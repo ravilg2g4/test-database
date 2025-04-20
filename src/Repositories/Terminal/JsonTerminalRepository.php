@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Repositories\Terminal;
 
-class JsonRepository implements RepositoryInterface
+use App\Repositories\RepositoryInterface;
+
+class JsonTerminalRepository implements RepositoryInterface
 {
     private function getJsonArray(): array
     {
-        $json = @file_get_contents(__DIR__ . '/database.json');
+        $json = @file_get_contents(__DIR__ . '/../database.json');
 
         if ($json === false) {
             echo "Json-файл для хранения данных о пользователях не найден\n";
@@ -44,10 +46,24 @@ class JsonRepository implements RepositoryInterface
         $dataBase = json_decode($json, true);
         $dataBase[] = $newUser;
 
-        file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
+        file_put_contents(__DIR__ . '/../database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
     }
-
     public function delete(): void
+    {
+        $choiceDelete = $this->choiceDelete();
+        if ($choiceDelete === 'id') {
+            $this->deleteId();
+        } elseif ($choiceDelete === 'email') {
+            $this->deleteEmail();
+        }
+    }
+    private function choiceDelete(): string
+    {
+        $choiceDelete = readline('Вы знаете id или по почту? (id/email): ');
+        $choiceDelete = trim($choiceDelete);
+        return $choiceDelete;
+    }
+    public function deleteId(): void
     {
         $dataBase = $this->getJsonArray();
 
@@ -59,7 +75,7 @@ class JsonRepository implements RepositoryInterface
         file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
     }
 
-    public function deleteByEmail(): void
+    public function deleteEmail(): void
     {
         $dataBase = $this->getJsonArray();
 

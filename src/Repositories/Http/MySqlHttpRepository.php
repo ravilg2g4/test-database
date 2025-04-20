@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Repositories\Http;
 
-class MySqlRepository implements RepositoryInterface
+use App\Repositories\RepositoryInterface;
+use App\Repositories\GetCredMySql;
+
+class MySqlHttpRepository implements RepositoryInterface
 {
     private function connectMySql(): object
     {
