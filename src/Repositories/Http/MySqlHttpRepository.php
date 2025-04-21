@@ -6,6 +6,7 @@ namespace App\Repositories\Http;
 
 use App\Repositories\RepositoryInterface;
 use App\Repositories\GetCredMySql;
+use mysqli;
 
 class MySqlHttpRepository implements RepositoryInterface
 {
@@ -15,30 +16,25 @@ class MySqlHttpRepository implements RepositoryInterface
         $credMySql->getCredMySql();
         $credMySql = $credMySql->credMySql;
 
-        mysqli_report(MYSQLI_REPORT_OFF);
-
-        $mysql = @new \mysqli(
-            hostname: $credMySql['HOSTNAME'],
-            username: $credMySql['USERNAME'],
-            password: $credMySql['PASSWORD'],
-            database: $credMySql['DATABASE'],
-            port: $credMySql['PORT']
-        );
-
-        if ($mysql->connect_error) {
-            error_log("Ошибка при подключении к MySQL: " . $mysql->connect_error);
-            exit();
+        try {
+            $dbh = new \PDO(
+                "mysql:host={$credMySql['HOSTNAME']};dbname={$credMySql['DATABASE']}",
+                $credMySql['USERNAME'],
+                $credMySql['PASSWORD']);
+        }
+        catch (\PDOException $e) {
+            die("Ошибка при подключении к MySQL: " . $e->getMessage());
         }
 
-        return $mysql;
+        return $dbh;
     }
     public function read(): void
     {
-        $mysql = $this->connectMySql();
+        $dbh = $this->connectMySql();
 
         $sql = 'SELECT * FROM users;';
-        $result = $mysql->query($sql);
-        $result = $result->fetch_all(MYSQLI_ASSOC);
+        $result = $dbh->query($sql);
+        $result = $result->fetchAll(\PDO::FETCH_ASSOC);
         $answer = json_encode($result, JSON_UNESCAPED_UNICODE);
         print_r($answer);
     }
@@ -50,10 +46,10 @@ class MySqlHttpRepository implements RepositoryInterface
     }
     private function getIdNewUser(): int
     {
-        $mysql = $this->connectMySql();
+        $dbh = $this->connectMySql();
         $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
-        $result = $mysql->query($sql);
-        $result = $result->fetch_array(MYSQLI_ASSOC);
+        $result = $dbh->query($sql);
+        $result = $result->fetch(\PDO::FETCH_ASSOC);
         $id = $result['id'] + 1;
         return $id;
     }
@@ -71,20 +67,23 @@ class MySqlHttpRepository implements RepositoryInterface
     }
     public function create(): void
     {
-        $mysql = $this->connectMySql();
+        $dbh = $this->connectMySql();
         $newUser = $this->prepareNewUser();
 
-        $sql = 'INSERT users(id, name, surname, email) VALUES(?, ?, ?, ?)';
-        $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('isss', $newUser['id'], $newUser['name'], $newUser['surname'], $newUser['email']);
+        $sql = 'INSERT users(id, name, surname, email) VALUES(:id, :name, :surname, :email)';
+        $stmt = $dbh->prepare($sql);
+        $stmt->bindValue(':id', $newUser['id'], \PDO::PARAM_INT);
+        $stmt->bindValue(':name', $newUser['name'], \PDO::PARAM_STR);
+        $stmt->bindValue(':surname', $newUser['surname'], \PDO::PARAM_STR);
+        $stmt->bindValue(':email', $newUser['email'], \PDO::PARAM_STR);
         $stmt->execute();
     }
     private function checkCreate(): bool
     {
-        $mysql = $this->connectMySql();
+        $dbh = $this->connectMySql();
         $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
-        $result = $mysql->query($sql);
-        $lastUser = $result->fetch_array(MYSQLI_ASSOC);
+        $result = $dbh->query($sql);
+        $lastUser = $result->fetch(\PDO::FETCH_ASSOC);
         $newUser = $this->getJsonFromPost();
         array_shift($lastUser);
 
@@ -118,13 +117,13 @@ class MySqlHttpRepository implements RepositoryInterface
         }
         return $choiceDelete;
     }
-    private function getTypeValueDelete(): string
+    private function getTypeValueDelete(): int
     {
         $choiceDelete = $this->choiceDelete();
         if ($choiceDelete === 'id') {
-            $typeValueDelete = 'i';
+            $typeValueDelete = \PDO::PARAM_INT;
         } elseif ($choiceDelete === 'email') {
-            $typeValueDelete = 's';
+            $typeValueDelete = \PDO::PARAM_STR;
         }
         return $typeValueDelete;
     }
@@ -142,9 +141,9 @@ class MySqlHttpRepository implements RepositoryInterface
     {
         $choiceDelete = $this->choiceDelete();
         if ($choiceDelete === 'id') {
-            $sql = 'DELETE FROM users WHERE id = ?';
+            $sql = 'DELETE FROM users WHERE id = :valueDelete;';
         } elseif ($choiceDelete === 'email') {
-            $sql = 'DELETE FROM users WHERE email = ?';
+            $sql = 'DELETE FROM users WHERE email = :valueDelete;';
         }
         return $sql;
     }
@@ -152,36 +151,34 @@ class MySqlHttpRepository implements RepositoryInterface
     {
         $choiceDelete = $this->choiceDelete();
         if ($choiceDelete === 'id') {
-            $sql = 'SELECT * FROM users WHERE id = ?';
+            $sql = 'SELECT * FROM users WHERE id = :valueDelete;';
         } elseif ($choiceDelete === 'email') {
-            $sql = 'SELECT * FROM users WHERE email = ?';
+            $sql = 'SELECT * FROM users WHERE email = :valueDelete;';
         }
         return $sql;
     }
     public function delete(): void
     {
-        $mysql = $this->connectMySql();
+        $dbh = $this->connectMySql();
         $valueDelete = $this->getValueDelete();
         $sql = $this->createSqlRequestDelete();
 
-        $stmt = $mysql->prepare($sql);
+        $stmt = $dbh->prepare($sql);
         $typeValueDelete = $this->getTypeValueDelete();
-        $stmt->bind_param($typeValueDelete, $valueDelete);
+        $stmt->bindValue(':valueDelete', $valueDelete, $typeValueDelete);
         $stmt->execute();
     }
     private function checkDelete(): bool
     {
-        $mysql = $this->connectMySql();
+        $dbh = $this->connectMySql();
         $valueDelete = $this->getValueDelete();
         $sql = $this->createSqlRequestCheck();
 
-        $stmt = $mysql->prepare($sql);
+        $stmt = $dbh->prepare($sql);
         $typeValueDelete = $this->getTypeValueDelete();
-        $stmt->bind_param($typeValueDelete, $valueDelete);
+        $stmt->bindValue(':valueDelete', $valueDelete, $typeValueDelete);
         $stmt->execute();
-
-        $result = $stmt->get_result();
-        $checkId = $result->fetch_array(MYSQLI_ASSOC);
+        $checkId = $stmt->fetch(\PDO::FETCH_ASSOC);
         $check = empty($checkId);
         return $check;
     }
