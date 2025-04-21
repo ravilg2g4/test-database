@@ -23,9 +23,9 @@ class MySqlTerminalRepository implements RepositoryInterface
             $dbh = new \PDO(
                 "mysql:host={$credMySql['HOSTNAME']};dbname={$credMySql['DATABASE']}",
                 $credMySql['USERNAME'],
-                $credMySql['PASSWORD']);
-        }
-        catch (\PDOException $e) {
+                $credMySql['PASSWORD']
+            );
+        } catch (\PDOException $e) {
             die("Ошибка при подключении к MySQL: " . $e->getMessage());
         }
 

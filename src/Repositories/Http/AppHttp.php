@@ -19,17 +19,33 @@ class AppHttp implements AppInterface
 
         $repository = UsersRepositoryFactory::getUsersRepository($dbSource);
 
+        $request = $_SERVER['REQUEST_URI'];
+        $request = explode('/', $request);
+        $request = $request[1];
+
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
-                $repository->read();
+                switch ($request) {
+                    case 'list-users':
+                        $repository->read();
+                        break;
+                }
                 break;
             case 'POST':
-                $repository->create();
-                $repository->answerCreate();
+                switch ($request) {
+                    case 'create-user':
+                        $repository->create();
+                        $repository->answerCreate();
+                        break;
+                }
                 break;
             case 'DELETE':
-                $repository->delete();
-                $repository->answerDelete();
+                switch ($request) {
+                    case 'delete-user':
+                        $repository->delete();
+                        $repository->answerDelete();
+                        break;
+                }
                 break;
         }
     }

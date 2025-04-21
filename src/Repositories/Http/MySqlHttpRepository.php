@@ -20,9 +20,9 @@ class MySqlHttpRepository implements RepositoryInterface
             $dbh = new \PDO(
                 "mysql:host={$credMySql['HOSTNAME']};dbname={$credMySql['DATABASE']}",
                 $credMySql['USERNAME'],
-                $credMySql['PASSWORD']);
-        }
-        catch (\PDOException $e) {
+                $credMySql['PASSWORD']
+            );
+        } catch (\PDOException $e) {
             die("Ошибка при подключении к MySQL: " . $e->getMessage());
         }
 
@@ -106,11 +106,10 @@ class MySqlHttpRepository implements RepositoryInterface
     }
     public function choiceDelete(): string
     {
-        if (array_key_exists('id', $_GET)) {
-            $choiceDelete = 'id';
-        } elseif (array_key_exists('email', $_GET)) {
-            $choiceDelete = 'email';
-        } else {
+        $request = $_SERVER['REQUEST_URI'];
+        $requestArray = explode('/', $request);
+        $choiceDelete = $requestArray[count($requestArray) - 2];
+        if ($choiceDelete !== 'id' && $choiceDelete !== 'email') {
             $answer = ['answerError' => 'Не указан параметр для удаления пользователя'];
             print_r($answer);
             exit();
@@ -129,11 +128,13 @@ class MySqlHttpRepository implements RepositoryInterface
     }
     private function getValueDelete(): int|string
     {
+        $request = $_SERVER['REQUEST_URI'];
+        $requestArray = explode('/', $request);
+        $valueDelete = $requestArray[count($requestArray) - 1];
+
         $choiceDelete = $this->choiceDelete();
         if ($choiceDelete === 'id') {
-            $valueDelete = (int)$_GET['id'];
-        } elseif ($choiceDelete === 'email') {
-            $valueDelete = $_GET['email'];
+            $valueDelete = (int)$valueDelete;
         }
         return $valueDelete;
     }
