@@ -1,95 +1,72 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Repositories;
+
+use App\Exceptions\CreateNewUserException;
+use App\Exceptions\DeleteUserException;
+use App\Exceptions\EntityNotFoundException;
 
 class MySqlRepository implements RepositoryInterface
 {
-    private function connectMySql(): object
+    public function connectMySql(): object
     {
         $credMySql = new GetCredMySql();
         $credMySql->getCredMySql();
         $credMySql = $credMySql->credMySql;
 
-        mysqli_report(MYSQLI_REPORT_OFF);
-
-        $mysql = @new \mysqli(
-            hostname: $credMySql['HOSTNAME'],
-            username: $credMySql['USERNAME'],
-            password: $credMySql['PASSWORD'],
-            database: $credMySql['DATABASE'],
-            port: $credMySql['PORT']
-        );
-
-        if ($mysql->connect_error) {
-            error_log("Ошибка при подключении к MySQL: " . $mysql->connect_error);
-            exit();
+        try {
+            $dbh = new \PDO(
+                "mysql:host={$credMySql['HOSTNAME']};dbname={$credMySql['DATABASE']}",
+                $credMySql['USERNAME'],
+                $credMySql['PASSWORD']
+            );
+        } catch (\PDOException $e) {
+            die("Ошибка при подключении к MySQL: " . $e->getMessage());
         }
 
-        return $mysql;
+        return $dbh;
     }
     public function read(): void
     {
-
-        $mysql = $this->connectMySql();
-
+        $dbh = $this->connectMySql();
         $sql = 'SELECT * FROM users;';
-        $result = $mysql->query($sql);
-
-        while ($row = $result->fetch_array(MYSQLI_ASSOC)) {
-            print_r($row);
-
-
+        $result = $dbh->query($sql);
+        $result = $result->fetchAll(\PDO::FETCH_ASSOC);
+        $answer = json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        print_r($answer);
+    }
+    public function create(NewUser $newUser): void
+    {
+        $dbh = $this->connectMySql();
+        $sql = 'INSERT users(id, name, surname, email) VALUES(:id, :name, :surname, :email)';
+        $stmt = $dbh->prepare($sql);
+        $stmt->bindValue(':id', $newUser->id, \PDO::PARAM_INT);
+        $stmt->bindValue(':name', $newUser->name, \PDO::PARAM_STR);
+        $stmt->bindValue(':surname', $newUser->surname, \PDO::PARAM_STR);
+        $stmt->bindValue(':email', $newUser->email, \PDO::PARAM_STR);
+        $create = $stmt->execute();
+        if ($create === false) {
+            throw new CreateNewUserException();
         }
     }
-
-    public function write(): void
+    public function delete(string $choiceDelete, string|int $valueDelete): void
     {
-        $mysql = $this->connectMySql();
-
-        $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
-        $result = $mysql->query($sql);
-        $result = $result->fetch_array(MYSQLI_ASSOC);
-        $id = $result['id'] + 1;
-
-        $name = readline('Имя нового пользователя: ');
-        $surname = readline('Фамилия нового пользователя: ');
-        $email = readline('Почта нового пользователя: ');
-
-        $name = trim($name);
-        $surname = trim($surname);
-        $email = trim($email);
-
-        $sql = 'INSERT users(id, name, surname, email) VALUES(?, ?, ?, ?)';
-        $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('isss',$id, $name, $surname, $email);
-        $stmt->execute();
-    }
-
-    public function deleteId(): void
-    {
-        $mysql = $this->connectMySql();
-
-        $id = readline('Введите id пользователя, которого хотите удалить: ');
-        $id = trim($id);
-
-        $sql = 'DELETE FROM users WHERE id = ?';
-        $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('i', $id);
-        $stmt->execute();
-    }
-
-    public function deleteEmail(): void
-    {
-        $mysql = $this->connectMySql();
-
-        $email = readline('Введите почту пользователя: ');
-        $email = trim($email);
-
-        $sql = 'DELETE FROM users WHERE email = ?';
-        $stmt = $mysql->prepare($sql);
-        $stmt->bind_param('s', $email);
-        $stmt->execute();
+        $dbh = $this->connectMySql();
+        if ($choiceDelete === 'id') {
+            $sql = 'DELETE FROM users WHERE id = :valueDelete;';
+            $typeValueDelete = \PDO::PARAM_INT;
+        } elseif ($choiceDelete === 'email') {
+            $sql = 'DELETE FROM users WHERE email = :valueDelete;';
+            $typeValueDelete = \PDO::PARAM_STR;
+        }
+        $stmt = $dbh->prepare($sql);
+        $stmt->bindValue(':valueDelete', $valueDelete, $typeValueDelete);
+        $delete = $stmt->execute();
+        if ($delete === false) {
+            throw new DeleteUserException(message: 'Ошибка при выполнении DELETE запроса к MySQL');
+        }
+        if ($stmt->rowCount() === 0) {
+            throw new EntityNotFoundException(entityName: 'user', failed: $choiceDelete, fieldValue: $valueDelete);
+        }
     }
 }

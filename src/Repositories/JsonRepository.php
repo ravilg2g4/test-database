@@ -1,75 +1,73 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Repositories;
+
+use App\Exceptions\CreateNewUserException;
+use App\Exceptions\DeleteUserException;
+use App\Exceptions\EntityNotFoundException;
 
 class JsonRepository implements RepositoryInterface
 {
-    private function getJsonArray(): array
+    public function getDatabaseArray(): array
     {
-        $json = @file_get_contents(__DIR__ . '/database.json');
+        $databaseJson = file_get_contents(__DIR__ . '/database.json');
 
-        if ($json === false) {
-            echo "Json-файл для хранения данных о пользователях не найден\n";
-            exit();
+        if ($databaseJson === false) {
+            throw new EntityNotFoundException(entityName: 'база данных в формате json', failed: '', fieldValue: '');
         }
-
-        $dataBase = json_decode($json, true);
-
-        return $dataBase;
+        return json_decode($databaseJson, true);
     }
     public function read(): void
     {
-        $dataBase = $this->getJsonArray();
-        print_r($dataBase);
+        $databaseArray = $this->getDatabaseArray();
+        $databaseJson = json_encode($databaseArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        print_r($databaseJson);
     }
-
-    public function write(): void
+    public function create(NewUser $newUser): void
     {
-        $dataBase = $this->getJsonArray();
-
-        $name = readline('Имя нового пользователя: ');
-        $surname = readline('Фамилия нового пользователя: ');
-        $email = readline('Почта нового пользователя: ');
-
-        $name = trim($name);
-        $surname = trim($surname);
-        $email = trim($email);
-
-        $id = 'id_' . array_key_last($dataBase) + 1;
-
-        $newUser = ['name' => $name, 'surname' => $surname, 'email' => $email, 'id' => $id];
-        $json = file_get_contents('database.json');
-        $dataBase = json_decode($json, true);
-        $dataBase[] = $newUser;
-
-        file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
+        $databaseArray = $this->getDatabaseArray();
+        $newUser = ['id' => $newUser->id, 'name' => $newUser->name, 'surname' => $newUser->surname, 'email' => $newUser->email];
+        $databaseArray[] = $newUser;
+        $create = @file_put_contents(__DIR__ . '/database.json', json_encode($databaseArray, JSON_PRETTY_PRINT));
+        if ($create === false) {
+            throw new CreateNewUserException();
+        }
     }
-
-    public function deleteId(): void
+    public function delete(string $choiceDelete, string|int $valueDelete): void
     {
-        $dataBase = $this->getJsonArray();
-
-        $id = readline('Введите id пользователя, которого хотите удалить: ');
-        $id = trim($id);
-
-        unset($dataBase[$id]);
-
-        file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
+        if ($choiceDelete === 'id') {
+            $newDatabaseArray = $this->deleteById($valueDelete);
+        } elseif ($choiceDelete === 'email') {
+            $newDatabaseArray = $this->deleteByEmail($valueDelete);
+        }
+        $this->checkDelete($newDatabaseArray, $choiceDelete, $valueDelete);
+        $this->saveAfterDelete($newDatabaseArray);
     }
-
-    public function deleteEmail(): void
+    private function deleteById(int $id): array
     {
-        $dataBase = $this->getJsonArray();
-
-        $email = readline('Введите почту пользователя: ');
-        $email = trim($email);
-
-        $index = array_search($email, array_column($dataBase, 'email', 'id'));
-        $index = substr($index, 3);
-        unset($dataBase[$index]);
-
-        file_put_contents(__DIR__ . '/database.json', json_encode($dataBase, JSON_PRETTY_PRINT));
+        $databaseArray = $this->getDatabaseArray();
+        unset($databaseArray[$id]);
+        return $databaseArray;
+    }
+    private function deleteByEmail(string $email): array
+    {
+        $databaseArray = $this->getDatabaseArray();
+        $index = array_search($email, array_column($databaseArray, 'email', 'id'));
+        unset($databaseArray[$index]);
+        return $databaseArray;
+    }
+    private function checkDelete(array $newDatabaseArray, string $choiceDelete, string|int $valueDelete): void
+    {
+        $databaseArray = $this->getDatabaseArray();
+        if ($databaseArray === $newDatabaseArray) {
+            throw new EntityNotFoundException(entityName: 'user', failed: $choiceDelete, fieldValue: $valueDelete);
+        }
+    }
+    private function saveAfterDelete(array $newDatabaseArray): void
+    {
+        $delete = @file_put_contents(__DIR__ . '/database.json', json_encode($newDatabaseArray, JSON_PRETTY_PRINT));
+        if ($delete === false) {
+            throw new DeleteUserException(message: 'Ошибка при сохранении базы данных формата json без удаленного пользователя');
+        }
     }
 }

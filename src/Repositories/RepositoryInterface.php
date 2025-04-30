@@ -7,7 +7,6 @@ namespace App\Repositories;
 interface RepositoryInterface
 {
     public function read(): void;
-    public function write(): void;
-    public function deleteId(): void;
-    public function deleteEmail(): void;
+    public function create(NewUser $newUser): void;
+    public function delete(string $choiceDelete, string $valueDelete): void;
 }

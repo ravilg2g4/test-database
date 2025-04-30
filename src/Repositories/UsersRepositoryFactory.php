@@ -6,14 +6,14 @@ namespace App\Repositories;
 
 class UsersRepositoryFactory
 {
-    public static function getUsersRepository(string $dbSource): ?RepositoryInterface
+    public function getUsersRepository(): RepositoryInterface
     {
-        if ($dbSource === 'mysql') {
-            return new MySqlRepository();
-        } elseif ($dbSource === 'json') {
+        $choiceRepository = new ChoiceRepository();
+        $choiceRepository = $choiceRepository->choiceRepository;
+        if ($choiceRepository === 'json') {
             return new JsonRepository();
-        } else {
-            return null;
+        } elseif ($choiceRepository === 'mysql') {
+            return new MySqlRepository();
         }
     }
 }
