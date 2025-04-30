@@ -4,5 +4,11 @@
         "name": "W",
         "surname": "W",
         "email": "W"
+    },
+    "2": {
+        "id": 2,
+        "name": "es2016",
+        "surname": "commonjs",
+        "email": "1@gmail.com"
     }
 }
