@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Exceptions\CreateNewUserException;
+use App\Exceptions\DataForCRUDNotFoundException;
 use App\Exceptions\DeleteUserException;
 use App\Exceptions\EntityNotFoundException;
 
@@ -26,12 +27,21 @@ class JsonRepository implements RepositoryInterface
     public function create(NewUser $newUser): void
     {
         $databaseArray = $this->getDatabaseArray();
-        $newUser = ['id' => $newUser->id, 'name' => $newUser->name, 'surname' => $newUser->surname, 'email' => $newUser->email];
+        $newUser = ['id' => $this->getNextId(), 'name' => $newUser->name, 'surname' => $newUser->surname, 'email' => $newUser->email];
         $databaseArray[] = $newUser;
         $create = @file_put_contents(__DIR__ . '/database.json', json_encode($databaseArray, JSON_PRETTY_PRINT));
         if ($create === false) {
             throw new CreateNewUserException();
         }
+    }
+    public function getNextId(): int
+    {
+        $databaseArray = $this->getDatabaseArray();
+        $lastUser = $databaseArray[array_key_last($databaseArray)];
+        if (is_null($lastUser)) {
+            throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'id');
+        }
+        return $lastUser['id'] + 1;
     }
     public function delete(string $choiceDelete, string|int $valueDelete): void
     {

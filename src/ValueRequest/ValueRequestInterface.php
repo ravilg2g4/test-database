@@ -9,7 +9,6 @@ use App\Repositories\NewUser;
 interface ValueRequestInterface
 {
     public function getNewUser(): NewUser;
-    public function getIdNewUser(): int;
     public function getNameNewUser(): string;
     public function getSurnameNewUser(): string;
     public function getEmailNewUser(): string;

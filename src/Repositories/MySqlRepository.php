@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Exceptions\CreateNewUserException;
+use App\Exceptions\DataForCRUDNotFoundException;
 use App\Exceptions\DeleteUserException;
 use App\Exceptions\EntityNotFoundException;
 
@@ -40,7 +41,7 @@ class MySqlRepository implements RepositoryInterface
         $dbh = $this->connectMySql();
         $sql = 'INSERT users(id, name, surname, email) VALUES(:id, :name, :surname, :email)';
         $stmt = $dbh->prepare($sql);
-        $stmt->bindValue(':id', $newUser->id, \PDO::PARAM_INT);
+        $stmt->bindValue(':id', $this->getNextId(), \PDO::PARAM_INT);
         $stmt->bindValue(':name', $newUser->name, \PDO::PARAM_STR);
         $stmt->bindValue(':surname', $newUser->surname, \PDO::PARAM_STR);
         $stmt->bindValue(':email', $newUser->email, \PDO::PARAM_STR);
@@ -48,6 +49,17 @@ class MySqlRepository implements RepositoryInterface
         if ($create === false) {
             throw new CreateNewUserException();
         }
+    }
+    public function getNextId(): int
+    {
+        $dbh = $this->connectMySql();
+        $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
+        $result = $dbh->query($sql);
+        if (is_null($result)) {
+            throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'id');
+        }
+        $result = $result->fetch(\PDO::FETCH_ASSOC);
+        return $result['id'] + 1;
     }
     public function delete(string $choiceDelete, string|int $valueDelete): void
     {

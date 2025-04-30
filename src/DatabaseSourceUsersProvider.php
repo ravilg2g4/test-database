@@ -1,22 +1,23 @@
 <?php
 
-namespace App\Repositories;
+namespace App;
 
 use App\Exceptions\ChoiceActionException;
 use App\Exceptions\EntityNotFoundException;
+use App\Repositories\GetEnv;
 
-class ChoiceRepository
+class DatabaseSourceUsersProvider
 {
-    public string $choiceRepository;
+    public string $databaseSourceUsers;
     public function __construct()
     {
         GetEnv::getEnv();
-        $choiceRepository = array_key_exists('DB_SOURCE', $_ENV);
-        if ($choiceRepository === false) {
+        $databaseSourceUsers = array_key_exists('DB_SOURCE', $_ENV);
+        if ($databaseSourceUsers === false) {
             throw new EntityNotFoundException(entityName: '.env', failed: 'DB_SOURCE', fieldValue: '');
-        } elseif ($choiceRepository === 'json' || $choiceRepository === 'mysql') {
+        } elseif ($databaseSourceUsers === 'json' || $databaseSourceUsers === 'mysql') {
             throw new ChoiceActionException(action: 'базу данных в файле .env', actualChoice: $choiceRepository, expectedChoice: 'mysql или json');
         }
-        $this->choiceRepository = $_ENV['DB_SOURCE'];
+        $this->databaseSourceUsers = $_ENV['DB_SOURCE'];
     }
 }

@@ -8,5 +8,6 @@ interface RepositoryInterface
 {
     public function read(): void;
     public function create(NewUser $newUser): void;
+    public function getNextId(): int;
     public function delete(string $choiceDelete, string $valueDelete): void;
 }

@@ -4,15 +4,17 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\DatabaseSourceUsersProvider;
+
 class UsersRepositoryFactory
 {
     public function getUsersRepository(): RepositoryInterface
     {
-        $choiceRepository = new ChoiceRepository();
-        $choiceRepository = $choiceRepository->choiceRepository;
-        if ($choiceRepository === 'json') {
+        $databaseSourceUsers = new DatabaseSourceUsersProvider();
+        $databaseSourceUsers = $databaseSourceUsers->databaseSourceUsers;
+        if ($databaseSourceUsers === 'json') {
             return new JsonRepository();
-        } elseif ($choiceRepository === 'mysql') {
+        } elseif ($databaseSourceUsers === 'mysql') {
             return new MySqlRepository();
         }
     }

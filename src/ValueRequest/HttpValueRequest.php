@@ -10,16 +10,10 @@ class HttpValueRequest implements ValueRequestInterface
 {
     public function getNewUser(): NewUser
     {
-        $id = $this->getIdNewUser();
         $name = $this->getNameNewUser();
         $surname = $this->getSurnameNewUser();
         $email = $this->getEmailNewUser();
-        return new NewUser(id: $id, name: $name, surname: $surname, email: $email);
-    }
-    public function getIdNewUser(): int
-    {
-        $idNewUser = new IdNewUser();
-        return $idNewUser->idNewUser;
+        return new NewUser(name: $name, surname: $surname, email: $email);
     }
     public function getArrayFromJsonPost(): array
     {
