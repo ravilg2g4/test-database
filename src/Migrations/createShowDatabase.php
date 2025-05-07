@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Migrations;
 
 require_once __DIR__.'/../../vendor/autoload.php';
-use App\Repositories\GetCredMySql;
+use App\Repositories\CredMySqlProvider;
 
-$credMySql = new GetCredMySql();
+$credMySql = new CredMySqlProvider();
 $credMySql->getCredMySql();
 $credMySql = $credMySql->credMySql;
 

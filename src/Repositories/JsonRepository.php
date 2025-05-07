@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\DTO\DeleteUserDTO;
+use App\DTO\NewUserDTO;
 use App\Exceptions\CreateNewUserException;
 use App\Exceptions\DataForCRUDNotFoundException;
 use App\Exceptions\DeleteUserException;
@@ -26,7 +28,7 @@ class JsonRepository implements RepositoryInterface
         $databaseJson = json_encode($databaseArray, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         print_r($databaseJson);
     }
-    public function create(NewUser $newUser): void
+    public function create(NewUserDTO $newUser): void
     {
         $databaseArray = $this->getDatabaseArray();
         $newUser = ['id' => $this->getNextId(), 'name' => $newUser->name, 'surname' => $newUser->surname, 'email' => $newUser->email];
@@ -45,14 +47,16 @@ class JsonRepository implements RepositoryInterface
         }
         return $lastUser['id'] + 1;
     }
-    public function delete(string $choiceDelete, string|int $valueDelete): void
+    public function delete(DeleteUserDTO $deleteUser): void
     {
-        if ($choiceDelete === 'id') {
+        $paramDelete = $deleteUser->paramDelete;
+        $valueDelete = $deleteUser->valueDelete;
+        if ($paramDelete === 'id') {
             $newDatabaseArray = $this->deleteById($valueDelete);
-        } elseif ($choiceDelete === 'email') {
+        } elseif ($paramDelete === 'email') {
             $newDatabaseArray = $this->deleteByEmail($valueDelete);
         }
-        $this->checkDelete($newDatabaseArray, $choiceDelete, $valueDelete);
+        $this->checkDelete($newDatabaseArray, $paramDelete, $valueDelete);
         $this->saveAfterDelete($newDatabaseArray);
     }
     private function deleteById(int $id): array
@@ -68,11 +72,11 @@ class JsonRepository implements RepositoryInterface
         unset($databaseArray[$index]);
         return $databaseArray;
     }
-    private function checkDelete(array $newDatabaseArray, string $choiceDelete, string|int $valueDelete): void
+    private function checkDelete(array $newDatabaseArray, string $paramDelete, string|int $valueDelete): void
     {
         $databaseArray = $this->getDatabaseArray();
         if ($databaseArray === $newDatabaseArray) {
-            throw new EntityNotFoundException(entityName: 'user', failed: $choiceDelete, fieldValue: $valueDelete);
+            throw new EntityNotFoundException(entityName: 'user', failed: $paramDelete, fieldValue: $valueDelete);
         }
     }
     private function saveAfterDelete(array $newDatabaseArray): void

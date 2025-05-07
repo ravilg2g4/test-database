@@ -10,7 +10,7 @@ class EntityNotFoundException extends \Exception
     private string $failed;
     private mixed $fieldValue;
 
-    public function __construct(string $entityName, string $failed, mixed $fieldValue)
+    public function __construct(string $entityName, string $failed = '', mixed $fieldValue = '')
     {
         $this->entityName = $entityName;
         $this->failed = $failed;

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App;
 
-class GetEnv
+class EnvProvider
 {
     public static function getEnv(): void
     {
-        $dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__, 2));
+        $dotenv = \Dotenv\Dotenv::createImmutable(dirname(__DIR__, 1));
         $dotenv->load();
     }
 }

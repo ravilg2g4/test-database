@@ -8,7 +8,7 @@ use App\DatabaseSourceUsersProvider;
 
 class UsersRepositoryFactory
 {
-    public function getUsersRepository(): RepositoryInterface
+    public static function getUsersRepository(): RepositoryInterface
     {
         $databaseSourceUsers = new DatabaseSourceUsersProvider();
         $databaseSourceUsers = $databaseSourceUsers->databaseSourceUsers;

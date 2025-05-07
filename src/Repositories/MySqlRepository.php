@@ -8,12 +8,14 @@ use App\Exceptions\CreateNewUserException;
 use App\Exceptions\DataForCRUDNotFoundException;
 use App\Exceptions\DeleteUserException;
 use App\Exceptions\EntityNotFoundException;
+use App\DTO\NewUserDTO;
+use App\DTO\DeleteUserDTO;
 
 class MySqlRepository implements RepositoryInterface
 {
     public function connectMySql(): object
     {
-        $credMySql = new GetCredMySql();
+        $credMySql = new CredMySqlProvider();
         $credMySql->getCredMySql();
         $credMySql = $credMySql->credMySql;
 
@@ -38,7 +40,7 @@ class MySqlRepository implements RepositoryInterface
         $answer = json_encode($result, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         print_r($answer);
     }
-    public function create(NewUser $newUser): void
+    public function create(NewUserDTO $newUser): void
     {
         $dbh = $this->connectMySql();
         $sql = 'INSERT users(id, name, surname, email) VALUES(:id, :name, :surname, :email)';
@@ -63,13 +65,15 @@ class MySqlRepository implements RepositoryInterface
         $result = $result->fetch(\PDO::FETCH_ASSOC);
         return $result['id'] + 1;
     }
-    public function delete(string $choiceDelete, string|int $valueDelete): void
+    public function delete(DeleteUserDTO $deleteUser): void
     {
         $dbh = $this->connectMySql();
-        if ($choiceDelete === 'id') {
+        $paramDelete = $deleteUser->paramDelete;
+        $valueDelete = $deleteUser->valueDelete;
+        if ($paramDelete === 'id') {
             $sql = 'DELETE FROM users WHERE id = :valueDelete;';
             $typeValueDelete = \PDO::PARAM_INT;
-        } elseif ($choiceDelete === 'email') {
+        } elseif ($paramDelete === 'email') {
             $sql = 'DELETE FROM users WHERE email = :valueDelete;';
             $typeValueDelete = \PDO::PARAM_STR;
         }
@@ -80,7 +84,7 @@ class MySqlRepository implements RepositoryInterface
             throw new DeleteUserException(message: 'Ошибка при выполнении DELETE запроса к MySQL');
         }
         if ($stmt->rowCount() === 0) {
-            throw new EntityNotFoundException(entityName: 'user', failed: $choiceDelete, fieldValue: $valueDelete);
+            throw new EntityNotFoundException(entityName: 'user', failed: $paramDelete, fieldValue: $valueDelete);
         }
     }
 }

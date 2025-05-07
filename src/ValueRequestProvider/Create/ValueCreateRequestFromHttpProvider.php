@@ -2,22 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\ValueRequest;
+namespace App\ValueRequestProvider\Create;
 
-use App\Exceptions\ChoiceActionException;
 use App\Exceptions\DataForCRUDNotFoundException;
-use App\Repositories\NewUser;
 
-class HttpValueRequest implements ValueRequestInterface
+class ValueCreateRequestFromHttpProvider implements ValueCreateRequestProviderInterface
 {
-    public function getNewUser(): NewUser
+    public function getArrayValueRequest(): array
     {
         $name = $this->getNameNewUser();
         $surname = $this->getSurnameNewUser();
         $email = $this->getEmailNewUser();
-        return new NewUser(name: $name, surname: $surname, email: $email);
+        return ['name' => $name, 'surname' => $surname, 'email' => $email];
     }
-    public function getArrayFromJsonPost(): array
+    private function getArrayFromJsonPost(): array
     {
         $json = file_get_contents('php://input');
         if ($json === false) {
@@ -51,28 +49,5 @@ class HttpValueRequest implements ValueRequestInterface
             throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'email');
         }
         return $email;
-    }
-    public function getChoiceDelete(): string
-    {
-        $request = $_SERVER['REQUEST_URI'];
-        $requestArray = explode('/', $request);
-        $choiceDelete = $requestArray[count($requestArray) - 2];
-        if (($choiceDelete !== 'id' && $choiceDelete !== 'email') || is_null($choiceDelete)) {
-            throw new ChoiceActionException(action: 'параметр для удаления пользователя', actualChoice: $choiceDelete, expectedChoice: 'id или email');
-        }
-        return $choiceDelete;
-    }
-    public function getValueDelete(string $choiceDelete): string|int
-    {
-        $request = $_SERVER['REQUEST_URI'];
-        $requestArray = explode('/', $request);
-        $valueDelete = $requestArray[count($requestArray) - 1];
-        if (is_null($valueDelete) || $valueDelete === '') {
-            throw new DataForCRUDNotFoundException(entityName: 'user', action: 'delete', dataName: 'valueDelete');
-        }
-        if ($choiceDelete === 'id') {
-            $valueDelete = (int)$valueDelete;
-        }
-        return $valueDelete;
     }
 }
