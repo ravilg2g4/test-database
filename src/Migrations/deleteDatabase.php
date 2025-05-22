@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Migrations;
 
 require_once __DIR__.'/../../vendor/autoload.php';
-use App\Repositories\CredMySqlProvider;
 
-$credMySql = new CredMySqlProvider();
+use App\Repositories\MySql\CredMySql;
+
+$credMySql = new CredMySql();
 $credMySql->getCredMySql();
 $credMySql = $credMySql->credMySql;
 
@@ -22,5 +23,5 @@ try {
 }
 
 
-$sql = 'DROP DATABASE test;';
+$sql = 'DROP DATABASE project;';
 $dbh->query($sql);

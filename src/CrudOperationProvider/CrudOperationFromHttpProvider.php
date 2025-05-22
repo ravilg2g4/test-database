@@ -6,7 +6,7 @@ namespace App\CrudOperationProvider;
 
 use App\Exceptions\ChoiceActionException;
 
-class CrudOperationProviderFromHttp
+class CrudOperationFromHttpProvider
 {
     public function getCrudOperation(): string
     {

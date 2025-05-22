@@ -63,7 +63,9 @@ create-show-database: # создаем базу данных и таблицу �
 index: # запуск файла index.php (основная программа)
 	$(EXEC_PHP) public/index.php
 
-
+.PHONY: test
+test: # запускаем тесты PHPUnit
+	$(EXEC_PHP) vendor/bin/phpunit
 .PHONY: exit
 exit: # выход
 	exit

@@ -14,21 +14,19 @@ class ValueRequestProviderFactory
 {
     public static function getValueRequestProvider(string $requestSource, string $crudOperation): object
     {
-        try {
-            if ($crudOperation === 'create') {
-                if ($requestSource === 'http') {
-                    $valueRequestProvider = new ValueCreateRequestFromHttpProvider();
-                } elseif ($requestSource === 'terminal') {
-                    $valueRequestProvider = new ValueCreateRequestFromTerminalProvider();
-                }
-            } elseif ($crudOperation === 'delete') {
-                if ($requestSource === 'http') {
-                    $valueRequestProvider = new ValueDeleteRequestFromHttpProvider();
-                } elseif ($requestSource === 'terminal') {
-                    $valueRequestProvider = new ValueDeleteRequestFromTerminalProvider();
-                }
+        if ($crudOperation === 'create') {
+            if ($requestSource === 'http') {
+                $valueRequestProvider = new ValueCreateRequestFromHttpProvider();
+            } elseif ($requestSource === 'terminal') {
+                $valueRequestProvider = new ValueCreateRequestFromTerminalProvider();
             }
-        } catch (\Exception) {
+        } elseif ($crudOperation === 'delete') {
+            if ($requestSource === 'http') {
+                $valueRequestProvider = new ValueDeleteRequestFromHttpProvider();
+            } elseif ($requestSource === 'terminal') {
+                $valueRequestProvider = new ValueDeleteRequestFromTerminalProvider();
+            }
+        } else {
             throw new EntityNotFoundException(entityName: 'ValueRequestProvider для requestSource - {$requestSource}, crudOperation - {$crudOperation}');
         }
         return $valueRequestProvider;

@@ -4,6 +4,11 @@ services:
       context: ./docker/php
     volumes:
       - '.:/var/www/html'
+    environment:
+      - XDEBUG_MODE=debug,coverage
+      - XDEBUG_CONFIG="client_host=host.docker.internal"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   nginx:
     image: nginx:latest

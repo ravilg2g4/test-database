@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Repositories\Json;
 
 use App\DTO\DeleteUserDTO;
 use App\DTO\NewUserDTO;
@@ -10,15 +10,21 @@ use App\Exceptions\CreateNewUserException;
 use App\Exceptions\DataForCRUDNotFoundException;
 use App\Exceptions\DeleteUserException;
 use App\Exceptions\EntityNotFoundException;
+use App\Repositories\RepositoryInterface;
 
 class JsonRepository implements RepositoryInterface
 {
+    private string $path;
+    public function __construct(string $path)
+    {
+        $this->path = $path;
+    }
     public function getDatabaseArray(): array
     {
-        $databaseJson = file_get_contents(__DIR__ . '/database.json');
+        $databaseJson = @file_get_contents($this->path);
 
         if ($databaseJson === false) {
-            throw new EntityNotFoundException(entityName: 'база данных в формате json', failed: '', fieldValue: '');
+            throw new EntityNotFoundException(entityName: 'база данных в формате json', failed: 'path', fieldValue: $this->path);
         }
         return json_decode($databaseJson, true);
     }
@@ -33,9 +39,13 @@ class JsonRepository implements RepositoryInterface
         $databaseArray = $this->getDatabaseArray();
         $newUser = ['id' => $this->getNextId(), 'name' => $newUser->name, 'surname' => $newUser->surname, 'email' => $newUser->email];
         $databaseArray[] = $newUser;
-        $create = @file_put_contents(__DIR__ . '/database.json', json_encode($databaseArray, JSON_PRETTY_PRINT));
+        $this->saveAfterCreate($databaseArray);
+    }
+    private function saveAfterCreate(array $newDatabaseArray): void
+    {
+        $create = @file_put_contents($this->path, json_encode($newDatabaseArray, JSON_PRETTY_PRINT));
         if ($create === false) {
-            throw new CreateNewUserException();
+            throw new CreateNewUserException('Ошибка при сохранении базы данных формата json после добавления нового пользователя');
         }
     }
     public function getNextId(): int
@@ -62,13 +72,14 @@ class JsonRepository implements RepositoryInterface
     private function deleteById(int $id): array
     {
         $databaseArray = $this->getDatabaseArray();
-        unset($databaseArray[$id]);
+        $index = array_search($id, array_column($databaseArray, 'id', 'id')) - 1;
+        unset($databaseArray[$index]);
         return $databaseArray;
     }
     private function deleteByEmail(string $email): array
     {
         $databaseArray = $this->getDatabaseArray();
-        $index = array_search($email, array_column($databaseArray, 'email', 'id'));
+        $index = array_search($email, array_column($databaseArray, 'email', 'id')) - 1;
         unset($databaseArray[$index]);
         return $databaseArray;
     }
@@ -81,9 +92,9 @@ class JsonRepository implements RepositoryInterface
     }
     private function saveAfterDelete(array $newDatabaseArray): void
     {
-        $delete = @file_put_contents(__DIR__ . '/database.json', json_encode($newDatabaseArray, JSON_PRETTY_PRINT));
+        $delete = @file_put_contents($this->path, json_encode($newDatabaseArray, JSON_PRETTY_PRINT));
         if ($delete === false) {
-            throw new DeleteUserException(message: 'Ошибка при сохранении базы данных формата json без удаленного пользователя');
+            throw new DeleteUserException(message: 'Ошибка при сохранении базы данных формата json после удаления пользователя');
         }
     }
 }

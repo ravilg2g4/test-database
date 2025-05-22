@@ -33,10 +33,11 @@ class ValueDeleteRequestFromTerminalProvider implements ValueDeleteRequestProvid
             throw new DataForCRUDNotFoundException(entityName: 'user', action: 'delete', dataName: 'valueDelete');
         }
         if ($paramDelete === 'id') {
+            $stringValueDelete = $valueDelete;
             $valueDelete = (int)$valueDelete;
-        }
-        if ($valueDelete === 0) {
-            throw new DeleteUserException(message: 'Введен некорректный id пользователя');
+            if ($valueDelete === 0) {
+                throw new DeleteUserException(message: "Введен некорректный id пользователя - {$stringValueDelete}");
+            }
         }
         return $valueDelete;
     }

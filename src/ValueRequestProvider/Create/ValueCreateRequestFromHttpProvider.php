@@ -18,7 +18,7 @@ class ValueCreateRequestFromHttpProvider implements ValueCreateRequestProviderIn
     private function getArrayFromJsonPost(): array
     {
         $json = file_get_contents('php://input');
-        if ($json === false) {
+        if ($json === false || $json === null) {
             throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'json из POST-запроса');
         }
         return json_decode($json, true);
@@ -26,8 +26,8 @@ class ValueCreateRequestFromHttpProvider implements ValueCreateRequestProviderIn
     public function getNameNewUser(): string
     {
         $arrayNewUser = $this->getArrayFromJsonPost();
-        $name = $arrayNewUser['name'];
-        if ($name === '' or $name === null) {
+        $name = @$arrayNewUser['name'];
+        if ($name === '' || $name === null) {
             throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'name');
         }
         return $name;
@@ -35,8 +35,8 @@ class ValueCreateRequestFromHttpProvider implements ValueCreateRequestProviderIn
     public function getSurnameNewUser(): string
     {
         $arrayNewUser = $this->getArrayFromJsonPost();
-        $surname = $arrayNewUser['surname'];
-        if ($surname === '' or $surname === null) {
+        $surname = @$arrayNewUser['surname'];
+        if ($surname === '' || $surname === null) {
             throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'surname');
         }
         return $surname;
@@ -44,8 +44,8 @@ class ValueCreateRequestFromHttpProvider implements ValueCreateRequestProviderIn
     public function getEmailNewUser(): string
     {
         $arrayNewUser = $this->getArrayFromJsonPost();
-        $email = $arrayNewUser['email'];
-        if ($email === '' or $email === null) {
+        $email = @$arrayNewUser['email'];
+        if ($email === '' || $email === null) {
             throw new DataForCRUDNotFoundException(entityName: 'user', action: 'create', dataName: 'email');
         }
         return $email;

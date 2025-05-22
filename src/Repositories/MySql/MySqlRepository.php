@@ -2,38 +2,26 @@
 
 declare(strict_types=1);
 
-namespace App\Repositories;
+namespace App\Repositories\MySql;
 
+use App\DTO\DeleteUserDTO;
+use App\DTO\NewUserDTO;
 use App\Exceptions\CreateNewUserException;
 use App\Exceptions\DataForCRUDNotFoundException;
 use App\Exceptions\DeleteUserException;
 use App\Exceptions\EntityNotFoundException;
-use App\DTO\NewUserDTO;
-use App\DTO\DeleteUserDTO;
+use App\Repositories\RepositoryInterface;
 
 class MySqlRepository implements RepositoryInterface
 {
-    public function connectMySql(): object
+    private object $dbh;
+    public function __construct(object $dbhMySql)
     {
-        $credMySql = new CredMySqlProvider();
-        $credMySql->getCredMySql();
-        $credMySql = $credMySql->credMySql;
-
-        try {
-            $dbh = new \PDO(
-                "mysql:host={$credMySql['HOSTNAME']};dbname={$credMySql['DATABASE']}",
-                $credMySql['USERNAME'],
-                $credMySql['PASSWORD']
-            );
-        } catch (\PDOException $e) {
-            die("Ошибка при подключении к MySQL: " . $e->getMessage());
-        }
-
-        return $dbh;
+        $this->dbh = $dbhMySql;
     }
     public function read(): void
     {
-        $dbh = $this->connectMySql();
+        $dbh = $this->dbh;
         $sql = 'SELECT * FROM users;';
         $result = $dbh->query($sql);
         $result = $result->fetchAll(\PDO::FETCH_ASSOC);
@@ -42,7 +30,7 @@ class MySqlRepository implements RepositoryInterface
     }
     public function create(NewUserDTO $newUser): void
     {
-        $dbh = $this->connectMySql();
+        $dbh = $this->dbh;
         $sql = 'INSERT users(id, name, surname, email) VALUES(:id, :name, :surname, :email)';
         $stmt = $dbh->prepare($sql);
         $stmt->bindValue(':id', $this->getNextId(), \PDO::PARAM_INT);
@@ -51,12 +39,12 @@ class MySqlRepository implements RepositoryInterface
         $stmt->bindValue(':email', $newUser->email, \PDO::PARAM_STR);
         $create = $stmt->execute();
         if ($create === false) {
-            throw new CreateNewUserException();
+            throw new CreateNewUserException(message: 'Ошибка при добавлении нового пользователя в базу данных MySQL');
         }
     }
     public function getNextId(): int
     {
-        $dbh = $this->connectMySql();
+        $dbh = $this->dbh;
         $sql = 'SELECT * FROM users WHERE id = (SELECT MAX(id) FROM users);';
         $result = $dbh->query($sql);
         if (is_null($result)) {
@@ -67,7 +55,7 @@ class MySqlRepository implements RepositoryInterface
     }
     public function delete(DeleteUserDTO $deleteUser): void
     {
-        $dbh = $this->connectMySql();
+        $dbh = $this->dbh;
         $paramDelete = $deleteUser->paramDelete;
         $valueDelete = $deleteUser->valueDelete;
         if ($paramDelete === 'id') {

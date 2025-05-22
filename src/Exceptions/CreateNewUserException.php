@@ -6,9 +6,9 @@ namespace App\Exceptions;
 
 class CreateNewUserException extends \Exception
 {
-    public function __construct()
+    public function __construct(string $message)
     {
-        parent::__construct(message: "Ошибка при создании нового пользователя");
+        parent::__construct(message: $message);
     }
     public function __toString(): string
     {
