@@ -30,8 +30,13 @@ down: # роняем контейнеры
 
 
 .PHONY: php-bash
-php-bash: # прыгаем в контейнер с php
+php-bash: # прыгаем в контейнер с PHP
 	$(DOCKER_COMPOSE) exec php bash
+
+
+.PHONY: php-mysql
+mysql-bash: # прыгаем в контейнер с MySQL
+	$(DOCKER_COMPOSE) exec mysql bash
 
 
 .PHONY: composer-install
@@ -58,7 +63,9 @@ create-show-database: # создаем базу данных и таблицу �
 index: # запуск файла index.php (основная программа)
 	$(EXEC_PHP) public/index.php
 
-
+.PHONY: test
+test: # запускаем тесты PHPUnit
+	$(EXEC_PHP) vendor/bin/phpunit
 .PHONY: exit
 exit: # выход
 	exit
